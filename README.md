@@ -41,13 +41,8 @@ end
 
 local IMAGE_ID = "10316531039"
 
--- Posições do Parasited Cameraman (alterna entre as duas)
-local ParasitedPositions = {
-    CFrame.new(25.1875, 43.3125, -54.75) * CFrame.Angles(math.rad(180), 0, math.rad(180)),
-    CFrame.new(103.625, 47.125, -44.25, 1, 0, 0, 0, 1, 0, 0, 0, 1)
-}
-
-local CurrentPositionIndex = 1
+-- Posição do Parasited Cameraman
+local ParasitedPosition = CFrame.new(103.625, 47.125, -44.25, 1, 0, 0, 0, 1, 0, 0, 0, 1)
 
 --==================================================
 -- PALETA DE CORES (TEMA VERMELHO)
@@ -594,18 +589,12 @@ local function CreateSlider(Name, Min, Max, Default, Callback, ContentParent)
 end
 
 --==================================================
--- AUTO PARASITED (ALTERNA ENTRE AS DUAS POSIÇÕES)
+-- AUTO PARASITED
 --==================================================
 
 local function AutoParasited()
     if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-        -- Alternar entre as posições
-        CurrentPositionIndex = CurrentPositionIndex + 1
-        if CurrentPositionIndex > #ParasitedPositions then
-            CurrentPositionIndex = 1
-        end
-        
-        Player.Character.HumanoidRootPart.CFrame = ParasitedPositions[CurrentPositionIndex]
+        Player.Character.HumanoidRootPart.CFrame = ParasitedPosition
     end
 end
 
