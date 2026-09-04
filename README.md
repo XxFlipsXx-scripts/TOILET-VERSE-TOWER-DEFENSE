@@ -41,8 +41,11 @@ end
 
 local IMAGE_ID = "10316531039"
 
--- Posição do Parasited Cameraman
+-- Posição do Parasited Cameraman (Normal)
 local ParasitedPosition = CFrame.new(103.625, 47.125, -44.25, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+
+-- Posição do Parasited Endless
+local ParasitedEndlessPosition = CFrame.new(103.5625, 43.3129997, 28.625, -1, 0, 0, 0, 1, 0, 0, 0, -1)
 
 --==================================================
 -- PALETA DE CORES (TEMA VERMELHO)
@@ -76,6 +79,9 @@ local NoclipConnection = nil
 local AutoParasitedEnabled = false
 local AutoParasitedConnection = nil
 local AutoClickConnection = nil
+local AutoParasitedEndlessEnabled = false
+local AutoParasitedEndlessConnection = nil
+local AutoClickEndlessConnection = nil
 local AntiAFKEnabled = false
 local AntiAFKConnection = nil
 
@@ -589,7 +595,7 @@ local function CreateSlider(Name, Min, Max, Default, Callback, ContentParent)
 end
 
 --==================================================
--- AUTO PARASITED
+-- AUTO PARASITED (NORMAL)
 --==================================================
 
 local function AutoParasited()
@@ -599,6 +605,22 @@ local function AutoParasited()
 end
 
 local function AutoClickE()
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, nil)
+    wait(0.1)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, nil)
+end
+
+--==================================================
+-- AUTO PARASITED ENDLESS
+--==================================================
+
+local function AutoParasitedEndless()
+    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        Player.Character.HumanoidRootPart.CFrame = ParasitedEndlessPosition
+    end
+end
+
+local function AutoClickEndless()
     VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, nil)
     wait(0.1)
     VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, nil)
@@ -627,6 +649,29 @@ CreateToggle("Auto Parasited", function(enabled)
         if AutoClickConnection then
             AutoClickConnection:Disconnect()
             AutoClickConnection = nil
+        end
+    end
+end, VerseContent)
+
+CreateToggle("Auto Parasited Endless", function(enabled)
+    AutoParasitedEndlessEnabled = enabled
+    if enabled then
+        AutoParasitedEndlessConnection = RunService.Heartbeat:Connect(function()
+            AutoParasitedEndless()
+        end)
+        
+        AutoClickEndlessConnection = RunService.Heartbeat:Connect(function()
+            AutoClickEndless()
+            wait(0.5)
+        end)
+    else
+        if AutoParasitedEndlessConnection then
+            AutoParasitedEndlessConnection:Disconnect()
+            AutoParasitedEndlessConnection = nil
+        end
+        if AutoClickEndlessConnection then
+            AutoClickEndlessConnection:Disconnect()
+            AutoClickEndlessConnection = nil
         end
     end
 end, VerseContent)
