@@ -41,11 +41,8 @@ end
 
 local IMAGE_ID = "10316531039"
 
--- Posições de TP
-local Positions = {
-    Parasited = CFrame.new(25.1875, 43.3125, -54.75) * CFrame.Angles(math.rad(180), 0, math.rad(180)),
-    Exist = CFrame.new(-3.89820838, 43.1498566, -44.151371, -0.342006564, 0.939697623, 7.00354576e-06, 7.00354576e-06, 1.00135803e-05, -1, -0.939697623, -0.342006564, -1.00135803e-05)
-}
+-- Posição do Parasited Cameraman
+local ParasitedPosition = CFrame.new(25.1875, 43.3125, -54.75) * CFrame.Angles(math.rad(180), 0, math.rad(180))
 
 --==================================================
 -- PALETA DE CORES (TEMA VERMELHO)
@@ -81,8 +78,6 @@ local AutoParasitedConnection = nil
 local AutoClickConnection = nil
 local AntiAFKEnabled = false
 local AntiAFKConnection = nil
-local AutoExistEnabled = false
-local AutoExistConnection = nil
 
 --==================================================
 -- GUI
@@ -599,7 +594,7 @@ end
 
 local function AutoParasited()
     if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-        Player.Character.HumanoidRootPart.CFrame = Positions.Parasited
+        Player.Character.HumanoidRootPart.CFrame = ParasitedPosition
     end
 end
 
@@ -607,16 +602,6 @@ local function AutoClickE()
     VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, nil)
     wait(0.1)
     VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, nil)
-end
-
---==================================================
--- AUTO EXIST
---==================================================
-
-local function AutoExist()
-    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-        Player.Character.HumanoidRootPart.CFrame = Positions.Exist
-    end
 end
 
 --==================================================
@@ -642,20 +627,6 @@ CreateToggle("Auto Parasited", function(enabled)
         if AutoClickConnection then
             AutoClickConnection:Disconnect()
             AutoClickConnection = nil
-        end
-    end
-end, VerseContent)
-
-CreateToggle("Auto Exist", function(enabled)
-    AutoExistEnabled = enabled
-    if enabled then
-        AutoExistConnection = RunService.Heartbeat:Connect(function()
-            AutoExist()
-        end)
-    else
-        if AutoExistConnection then
-            AutoExistConnection:Disconnect()
-            AutoExistConnection = nil
         end
     end
 end, VerseContent)
