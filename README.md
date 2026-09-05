@@ -1,5 +1,5 @@
 --==================================================
--- TOILET VERSE HUB
+-- TOILET VERSE HUB v1.2 BETA
 -- GUI BASE COM ABAS (WHITELIST)
 --==================================================
 
@@ -9,6 +9,7 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local TeleportService = game:GetService("TeleportService")
+local StarterGui = game:GetService("StarterGui")
 
 local Player = Players.LocalPlayer
 
@@ -36,6 +37,19 @@ if not IsWhitelisted() then
 end
 
 --==================================================
+-- NOTIFICAÇÃO DO JOGO
+--==================================================
+
+local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+
+StarterGui:SetCore("SendNotification", {
+    Title = "🎮 Toilet Verse Hub v1.2 BETA",
+    Text = "Jogo: " .. GameName,
+    Duration = 5,
+    Icon = "rbxassetid://10316531039"
+})
+
+--==================================================
 -- CONFIG
 --==================================================
 
@@ -56,24 +70,58 @@ local ParasitedPosition = CFrame.new(103.625, 47.125, -44.25, 1, 0, 0, 0, 1, 0, 
 local ParasitedEndlessPosition = CFrame.new(103.5625, 43.3129997, 28.625, -1, 0, 0, 0, 1, 0, 0, 0, -1)
 
 --==================================================
--- PALETA DE CORES (PRETO, BRANCO E VERMELHO)
+-- PALETA DE CORES
 --==================================================
 
-local Colors = {
-    Background = Color3.fromRGB(15, 15, 15),
-    Surface = Color3.fromRGB(25, 25, 25),
-    SurfaceLight = Color3.fromRGB(40, 40, 40),
-    Accent = Color3.fromRGB(255, 0, 0),
-    AccentDark = Color3.fromRGB(150, 0, 0),
-    Text = Color3.fromRGB(255, 255, 255),
-    TextDim = Color3.fromRGB(150, 150, 150),
-    ToggleOn = Color3.fromRGB(255, 0, 0),
-    ToggleOff = Color3.fromRGB(50, 50, 50),
-    CircleOn = Color3.fromRGB(255, 255, 255),
-    CircleOff = Color3.fromRGB(150, 150, 150),
-    Gold = Color3.fromRGB(255, 215, 0),
-    Locked = Color3.fromRGB(100, 100, 100)
+local Themes = {
+    PretoVermelho = {
+        Background = Color3.fromRGB(15, 15, 15),
+        Surface = Color3.fromRGB(25, 25, 25),
+        SurfaceLight = Color3.fromRGB(40, 40, 40),
+        Accent = Color3.fromRGB(255, 0, 0),
+        AccentDark = Color3.fromRGB(150, 0, 0),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextDim = Color3.fromRGB(150, 150, 150),
+        ToggleOn = Color3.fromRGB(255, 0, 0),
+        ToggleOff = Color3.fromRGB(50, 50, 50),
+        CircleOn = Color3.fromRGB(255, 255, 255),
+        CircleOff = Color3.fromRGB(150, 150, 150),
+        Gold = Color3.fromRGB(255, 215, 0),
+        Locked = Color3.fromRGB(100, 100, 100)
+    },
+    PretoBranco = {
+        Background = Color3.fromRGB(10, 10, 10),
+        Surface = Color3.fromRGB(20, 20, 20),
+        SurfaceLight = Color3.fromRGB(35, 35, 35),
+        Accent = Color3.fromRGB(255, 255, 255),
+        AccentDark = Color3.fromRGB(150, 150, 150),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextDim = Color3.fromRGB(120, 120, 120),
+        ToggleOn = Color3.fromRGB(255, 255, 255),
+        ToggleOff = Color3.fromRGB(50, 50, 50),
+        CircleOn = Color3.fromRGB(0, 0, 0),
+        CircleOff = Color3.fromRGB(150, 150, 150),
+        Gold = Color3.fromRGB(200, 200, 200),
+        Locked = Color3.fromRGB(80, 80, 80)
+    },
+    PretoAzul = {
+        Background = Color3.fromRGB(10, 15, 20),
+        Surface = Color3.fromRGB(20, 25, 35),
+        SurfaceLight = Color3.fromRGB(35, 40, 55),
+        Accent = Color3.fromRGB(0, 150, 255),
+        AccentDark = Color3.fromRGB(0, 100, 180),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextDim = Color3.fromRGB(150, 160, 170),
+        ToggleOn = Color3.fromRGB(0, 150, 255),
+        ToggleOff = Color3.fromRGB(40, 50, 65),
+        CircleOn = Color3.fromRGB(255, 255, 255),
+        CircleOff = Color3.fromRGB(150, 160, 170),
+        Gold = Color3.fromRGB(255, 215, 0),
+        Locked = Color3.fromRGB(80, 90, 100)
+    }
 }
+
+local Colors = Themes.PretoVermelho
 
 --==================================================
 -- VARIÁVEIS DE ESTADO
@@ -93,6 +141,7 @@ local AutoParasitedEndlessConnection = nil
 local AutoClickEndlessConnection = nil
 local AntiAFKEnabled = false
 local AntiAFKConnection = nil
+local EditModeEnabled = false
 
 --==================================================
 -- GUI
@@ -143,6 +192,8 @@ Main.Position = UDim2.new(0.5, -250, 0.5, -250)
 Main.BackgroundColor3 = Colors.Background
 Main.BorderSizePixel = 0
 Main.Visible = false
+Main.Active = true
+Main.Draggable = false
 Main.Parent = Gui
 
 local MainCorner = Instance.new("UICorner")
@@ -173,7 +224,7 @@ local Subtitle = Instance.new("TextLabel")
 Subtitle.Size = UDim2.new(1, -70, 0, 20)
 Subtitle.Position = UDim2.fromOffset(22, 38)
 Subtitle.BackgroundTransparency = 1
-Subtitle.Text = "Verse Hub"
+Subtitle.Text = "Verse Hub v1.2 BETA"
 Subtitle.TextColor3 = Colors.TextDim
 Subtitle.TextSize = 11
 Subtitle.Font = Enum.Font.Gotham
@@ -297,7 +348,7 @@ ScriptTitle.Name = "ScriptTitle"
 ScriptTitle.Size = UDim2.new(1, 0, 0, 35)
 ScriptTitle.Position = UDim2.fromOffset(20, 20)
 ScriptTitle.BackgroundTransparency = 1
-ScriptTitle.Text = "TOILET VERSE HUB"
+ScriptTitle.Text = "TOILET VERSE HUB v1.2 BETA"
 ScriptTitle.TextColor3 = Colors.Gold
 ScriptTitle.TextSize = 18
 ScriptTitle.Font = Enum.Font.GothamBold
@@ -749,6 +800,12 @@ LockedLabel.Parent = GodModeContent
 -- ABA CONFIG
 --==================================================
 
+CreateToggle("Modo Editar (Mover GUI)", function(enabled)
+    EditModeEnabled = enabled
+    Main.Draggable = enabled
+    FloatButton.Draggable = enabled
+end, ConfigContent)
+
 CreateToggle("Anti AFK", function(enabled)
     AntiAFKEnabled = enabled
     if enabled then
@@ -772,6 +829,34 @@ CreateToggle("Rejoin", function(enabled)
         TeleportService:Teleport(CurrentPlace)
     end
 end, ConfigContent)
+
+-- Botões de tema
+CreateMapButton("Tema: Preto/Vermelho", nil, ConfigContent)
+local function UpdateThemeButtons()
+    for _, child in pairs(ConfigContent:GetChildren()) do
+        if child:IsA("TextButton") and child.Name:find("Tema") then
+            child.MouseButton1Click:Connect(function()
+                if child.Name == "Tema: Preto/Vermelho" then
+                    Colors = Themes.PretoVermelho
+                elseif child.Name == "Tema: Preto/Branco" then
+                    Colors = Themes.PretoBranco
+                elseif child.Name == "Tema: Preto/Azul" then
+                    Colors = Themes.PretoAzul
+                end
+                -- Atualizar cores
+                Main.BackgroundColor3 = Colors.Background
+                FloatButton.BackgroundColor3 = Colors.Background
+                FloatStroke.Color = Colors.Accent
+                MainStroke.Color = Colors.AccentDark
+                Title.TextColor3 = Colors.Accent
+            end)
+        end
+    end
+end
+
+CreateMapButton("Tema: Preto/Branco", nil, ConfigContent)
+CreateMapButton("Tema: Preto/Azul", nil, ConfigContent)
+UpdateThemeButtons()
 
 --==================================================
 -- FUNÇÃO PARA TROCAR DE ABA
@@ -831,7 +916,7 @@ FloatButton.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- ARRASTAR BOLINHA
+-- ARRASTAR BOLINHA (sempre funciona)
 --==================================================
 
 local Dragging = false
@@ -867,4 +952,4 @@ UserInputService.InputChanged:Connect(function(Input)
     end
 end)
 
-print("Toilet Verse Hub carregado com sucesso!")
+print("Toilet Verse Hub v1.2 BETA carregado com sucesso!")
