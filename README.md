@@ -41,6 +41,14 @@ end
 
 local IMAGE_ID = "10316531039"
 
+-- Posições dos Mapas
+local MapPositions = {
+    Endless = CFrame.new(-670.560425, 189.44162, 700.097412, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+    Cemiterio = CFrame.new(-424.078369, 209.857224, 752.09491, 0, 0, -1, 0, 1, 0, 1, 0, 0),
+    GodSpeak = CFrame.new(-1232.84851, 206.541626, 732.705078, 0, 0, 1, 0, 1, -0, -1, 0, 0),
+    CidadeDestruida = CFrame.new(-370.203308, 216.357224, 696.220215, 0, 0, -1, 0, 1, 0, 1, 0, 0)
+}
+
 -- Posição do Parasited Cameraman (Normal)
 local ParasitedPosition = CFrame.new(103.625, 47.125, -44.25, 1, 0, 0, 0, 1, 0, 0, 0, 1)
 
@@ -48,22 +56,23 @@ local ParasitedPosition = CFrame.new(103.625, 47.125, -44.25, 1, 0, 0, 0, 1, 0, 
 local ParasitedEndlessPosition = CFrame.new(103.5625, 43.3129997, 28.625, -1, 0, 0, 0, 1, 0, 0, 0, -1)
 
 --==================================================
--- PALETA DE CORES (TEMA VERMELHO)
+-- PALETA DE CORES (PRETO, BRANCO E VERMELHO)
 --==================================================
 
 local Colors = {
-    Background = Color3.fromRGB(22, 12, 14),
-    Surface = Color3.fromRGB(35, 18, 20),
-    SurfaceLight = Color3.fromRGB(50, 25, 28),
-    Accent = Color3.fromRGB(220, 40, 50),
-    AccentDark = Color3.fromRGB(160, 25, 35),
-    Text = Color3.fromRGB(240, 235, 235),
-    TextDim = Color3.fromRGB(180, 160, 162),
-    ToggleOn = Color3.fromRGB(220, 40, 50),
-    ToggleOff = Color3.fromRGB(50, 30, 33),
+    Background = Color3.fromRGB(15, 15, 15),
+    Surface = Color3.fromRGB(25, 25, 25),
+    SurfaceLight = Color3.fromRGB(40, 40, 40),
+    Accent = Color3.fromRGB(255, 0, 0),
+    AccentDark = Color3.fromRGB(150, 0, 0),
+    Text = Color3.fromRGB(255, 255, 255),
+    TextDim = Color3.fromRGB(150, 150, 150),
+    ToggleOn = Color3.fromRGB(255, 0, 0),
+    ToggleOff = Color3.fromRGB(50, 50, 50),
     CircleOn = Color3.fromRGB(255, 255, 255),
-    CircleOff = Color3.fromRGB(200, 180, 183),
-    Gold = Color3.fromRGB(255, 215, 0)
+    CircleOff = Color3.fromRGB(150, 150, 150),
+    Gold = Color3.fromRGB(255, 215, 0),
+    Locked = Color3.fromRGB(100, 100, 100)
 }
 
 --==================================================
@@ -97,30 +106,22 @@ Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 Gui.Parent = game:GetService("CoreGui")
 
 --==================================================
--- BOTÃO FLUTUANTE
+-- BOTÃO FLUTUANTE (PRETO COM EMOJI DE CAIXA DE SOM)
 --==================================================
 
-local FloatButton = Instance.new("ImageButton")
+local FloatButton = Instance.new("TextButton")
 FloatButton.Name = "TzButton"
 FloatButton.Size = UDim2.fromOffset(65, 65)
 FloatButton.Position = UDim2.new(0, 20, 0.5, -32)
-FloatButton.BackgroundColor3 = Color3.fromRGB(35, 18, 20)
+FloatButton.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 FloatButton.BorderSizePixel = 0
-FloatButton.Image = "rbxassetid://10316531039"
-FloatButton.ScaleType = Enum.ScaleType.Fit
-FloatButton.BackgroundTransparency = 0
+FloatButton.Text = "🔊"
+FloatButton.TextSize = 30
 FloatButton.AutoButtonColor = false
 FloatButton.Visible = true
 FloatButton.Active = true
 FloatButton.Selectable = true
 FloatButton.Parent = Gui
-
-local ImagePadding = Instance.new("UIPadding")
-ImagePadding.PaddingTop = UDim.new(0, 10)
-ImagePadding.PaddingBottom = UDim.new(0, 10)
-ImagePadding.PaddingLeft = UDim.new(0, 10)
-ImagePadding.PaddingRight = UDim.new(0, 10)
-ImagePadding.Parent = FloatButton
 
 local FloatCorner = Instance.new("UICorner")
 FloatCorner.CornerRadius = UDim.new(1, 0)
@@ -227,7 +228,7 @@ TabContainer.BackgroundTransparency = 1
 TabContainer.Parent = Main
 
 local TabLayout = Instance.new("UIListLayout")
-TabLayout.Padding = UDim.new(0, 5)
+TabLayout.Padding = UDim.new(0, 3)
 TabLayout.FillDirection = Enum.FillDirection.Horizontal
 TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
 TabLayout.Parent = TabContainer
@@ -235,12 +236,12 @@ TabLayout.Parent = TabContainer
 local function CreateTab(Name, LayoutOrder)
     local Tab = Instance.new("TextButton")
     Tab.Name = Name
-    Tab.Size = UDim2.new(0, 100, 1, 0)
+    Tab.Size = UDim2.new(0, 90, 1, 0)
     Tab.BackgroundColor3 = Colors.Surface
     Tab.BorderSizePixel = 0
     Tab.Text = Name
     Tab.TextColor3 = Colors.TextDim
-    Tab.TextSize = 13
+    Tab.TextSize = 12
     Tab.Font = Enum.Font.GothamMedium
     Tab.AutoButtonColor = false
     Tab.LayoutOrder = LayoutOrder
@@ -255,8 +256,9 @@ end
 
 local CreditsTab = CreateTab("Créditos", 1)
 local VerseTab = CreateTab("Verse", 2)
-local GodModeTab = CreateTab("God Mode", 3)
-local ConfigTab = CreateTab("Config", 4)
+local MapsTab = CreateTab("Maps", 3)
+local GodModeTab = CreateTab("🔒 God Mode", 4)
+local ConfigTab = CreateTab("Config", 5)
 
 --==================================================
 -- CONTAINERS DAS ABAS
@@ -282,8 +284,9 @@ end
 
 local CreditsContent = CreateTabContent(1)
 local VerseContent = CreateTabContent(2)
-local GodModeContent = CreateTabContent(3)
-local ConfigContent = CreateTabContent(4)
+local MapsContent = CreateTabContent(3)
+local GodModeContent = CreateTabContent(4)
+local ConfigContent = CreateTabContent(5)
 
 --==================================================
 -- CONTEÚDO DA ABA CRÉDITOS (LADO ESQUERDO)
@@ -469,6 +472,48 @@ local function CreateToggle(Name, Callback, ContentParent)
     end)
 
     return Row
+end
+
+--==================================================
+-- FUNÇÃO DE BOTÃO DE MAPA
+--==================================================
+
+local function CreateMapButton(Name, MapCFrame, ContentParent)
+    local Btn = Instance.new("TextButton")
+    Btn.Name = Name
+    Btn.Size = UDim2.new(1, 0, 0, 45)
+    Btn.BackgroundColor3 = Colors.Surface
+    Btn.BorderSizePixel = 0
+    Btn.Text = Name
+    Btn.TextColor3 = Colors.Text
+    Btn.TextSize = 14
+    Btn.Font = Enum.Font.GothamMedium
+    Btn.AutoButtonColor = false
+    Btn.Parent = ContentParent
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 10)
+    Corner.Parent = Btn
+
+    Btn.MouseEnter:Connect(function()
+        TweenService:Create(Btn, TweenInfo.new(0.2), {
+            BackgroundColor3 = Colors.SurfaceLight
+        }):Play()
+    end)
+
+    Btn.MouseLeave:Connect(function()
+        TweenService:Create(Btn, TweenInfo.new(0.2), {
+            BackgroundColor3 = Colors.Surface
+        }):Play()
+    end)
+
+    Btn.MouseButton1Click:Connect(function()
+        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            Player.Character.HumanoidRootPart.CFrame = MapCFrame
+        end
+    end)
+
+    return Btn
 end
 
 --==================================================
@@ -677,131 +722,28 @@ CreateToggle("Auto Parasited Endless", function(enabled)
 end, VerseContent)
 
 --==================================================
--- ABA GOD MODE
+-- ABA MAPS
 --==================================================
 
-CreateToggle("God Mode", function(enabled)
-    GodModeEnabled = enabled
-    if enabled then
-        GodModeConnection = RunService.Heartbeat:Connect(function()
-            if Player.Character and Player.Character:FindFirstChild("Humanoid") then
-                Player.Character.Humanoid.Health = Player.Character.Humanoid.MaxHealth
-                Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-                Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-            end
-        end)
-    else
-        if GodModeConnection then
-            GodModeConnection:Disconnect()
-            GodModeConnection = nil
-        end
-        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
-            Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
-            Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
-        end
-    end
-end, GodModeContent)
+CreateMapButton("Endless", MapPositions.Endless, MapsContent)
+CreateMapButton("Cemitério", MapPositions.Cemiterio, MapsContent)
+CreateMapButton("God Speak", MapPositions.GodSpeak, MapsContent)
+CreateMapButton("Cidade Destruída", MapPositions.CidadeDestruida, MapsContent)
 
-CreateSlider("Speed", 16, 500, 16, function(value)
-    if Player.Character and Player.Character:FindFirstChild("Humanoid") then
-        Player.Character.Humanoid.WalkSpeed = value
-    end
-end, GodModeContent)
+--==================================================
+-- ABA GOD MODE (BLOQUEADA)
+--==================================================
 
-CreateSlider("Jump Power", 50, 300, 50, function(value)
-    if Player.Character and Player.Character:FindFirstChild("Humanoid") then
-        Player.Character.Humanoid.JumpPower = value
-    end
-end, GodModeContent)
-
-CreateToggle("Fly", function(enabled)
-    FlyEnabled = enabled
-    if enabled then
-        local Character = Player.Character or Player.CharacterAdded:Wait()
-        local Humanoid = Character:WaitForChild("Humanoid")
-        local BodyGyro = Instance.new("BodyGyro")
-        local BodyVelocity = Instance.new("BodyVelocity")
-        
-        BodyGyro.P = 9000
-        BodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        BodyGyro.CFrame = Character.HumanoidRootPart.CFrame
-        BodyGyro.Parent = Character.HumanoidRootPart
-        
-        BodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        BodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        BodyVelocity.Parent = Character.HumanoidRootPart
-        
-        FlyConnection = RunService.Heartbeat:Connect(function()
-            local Speed = 50
-            local Direction = Vector3.new(0, 0, 0)
-            
-            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                Direction = Direction + Character.HumanoidRootPart.CFrame.LookVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                Direction = Direction - Character.HumanoidRootPart.CFrame.LookVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                Direction = Direction - Character.HumanoidRootPart.CFrame.RightVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                Direction = Direction + Character.HumanoidRootPart.CFrame.RightVector
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                Direction = Direction + Vector3.new(0, 1, 0)
-            end
-            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                Direction = Direction - Vector3.new(0, 1, 0)
-            end
-            
-            if Direction.Magnitude > 0 then
-                BodyVelocity.Velocity = Direction.Unit * Speed
-            else
-                BodyVelocity.Velocity = Vector3.new(0, 0, 0)
-            end
-            
-            BodyGyro.CFrame = Character.HumanoidRootPart.CFrame
-        end)
-    else
-        if FlyConnection then
-            FlyConnection:Disconnect()
-            FlyConnection = nil
-        end
-        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-            local BodyGyro = Player.Character.HumanoidRootPart:FindFirstChild("BodyGyro")
-            local BodyVelocity = Player.Character.HumanoidRootPart:FindFirstChild("BodyVelocity")
-            if BodyGyro then BodyGyro:Destroy() end
-            if BodyVelocity then BodyVelocity:Destroy() end
-        end
-    end
-end, GodModeContent)
-
-CreateToggle("Noclip", function(enabled)
-    NoclipEnabled = enabled
-    if enabled then
-        NoclipConnection = RunService.Heartbeat:Connect(function()
-            if Player.Character then
-                for _, part in pairs(Player.Character:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = false
-                    end
-                end
-            end
-        end)
-    else
-        if NoclipConnection then
-            NoclipConnection:Disconnect()
-            NoclipConnection = nil
-        end
-        if Player.Character then
-            for _, part in pairs(Player.Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = true
-                end
-            end
-        end
-    end
-end, GodModeContent)
+local LockedLabel = Instance.new("TextLabel")
+LockedLabel.Size = UDim2.new(1, 0, 0, 50)
+LockedLabel.Position = UDim2.new(0, 0, 0.5, -25)
+LockedLabel.BackgroundTransparency = 1
+LockedLabel.Text = "🔒 BLOQUEADO\nDisponível em breve!"
+LockedLabel.TextColor3 = Colors.Locked
+LockedLabel.TextSize = 16
+LockedLabel.Font = Enum.Font.GothamBold
+LockedLabel.TextXAlignment = Enum.TextXAlignment.Center
+LockedLabel.Parent = GodModeContent
 
 --==================================================
 -- ABA CONFIG
@@ -840,8 +782,10 @@ local function SwitchTab(Tab, Content)
     CreditsTab.TextColor3 = Colors.TextDim
     VerseTab.BackgroundColor3 = Colors.Surface
     VerseTab.TextColor3 = Colors.TextDim
+    MapsTab.BackgroundColor3 = Colors.Surface
+    MapsTab.TextColor3 = Colors.TextDim
     GodModeTab.BackgroundColor3 = Colors.Surface
-    GodModeTab.TextColor3 = Colors.TextDim
+    GodModeTab.TextColor3 = Colors.Locked
     ConfigTab.BackgroundColor3 = Colors.Surface
     ConfigTab.TextColor3 = Colors.TextDim
     
@@ -850,6 +794,7 @@ local function SwitchTab(Tab, Content)
     
     CreditsContent.Visible = (Content == CreditsContent)
     VerseContent.Visible = (Content == VerseContent)
+    MapsContent.Visible = (Content == MapsContent)
     GodModeContent.Visible = (Content == GodModeContent)
     ConfigContent.Visible = (Content == ConfigContent)
 end
@@ -860,6 +805,10 @@ end)
 
 VerseTab.MouseButton1Click:Connect(function()
     SwitchTab(VerseTab, VerseContent)
+end)
+
+MapsTab.MouseButton1Click:Connect(function()
+    SwitchTab(MapsTab, MapsContent)
 end)
 
 GodModeTab.MouseButton1Click:Connect(function()
