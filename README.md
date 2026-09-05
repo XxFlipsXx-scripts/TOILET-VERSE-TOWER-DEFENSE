@@ -69,6 +69,14 @@ local ParasitedPosition = CFrame.new(103.625, 47.125, -44.25, 1, 0, 0, 0, 1, 0, 
 -- Posição do Parasited Endless
 local ParasitedEndlessPosition = CFrame.new(103.5625, 43.3129997, 28.625, -1, 0, 0, 0, 1, 0, 0, 0, -1)
 
+-- Posições de esquiva do Boss
+local MeteorDodgePosition = CFrame.new(-40.0214844, 5.09351492, 166.178818, 0.965929627, -0, -0.258804798, 0, 1, -0, 0.258804798, 0, 0.965929627)
+
+local ShockwaveDodgePositions = {
+    CFrame.new(-198.437744, 5.09351492, -17.747736, -0.866007447, 0, -0.500031412, 0, 1, 0, 0.500031412, 0, -0.866007447),
+    CFrame.new(-188.968613, 5.09351492, 191.112518, 0.422592998, 0, 0.906319618, 0, 1, 0, -0.906319618, 0, 0.422592998)
+}
+
 --==================================================
 -- PALETA DE CORES
 --==================================================
@@ -129,8 +137,6 @@ local Colors = Themes.PretoVermelho
 
 local GodModeEnabled = false
 local GodModeConnection = nil
-local FlyEnabled = false
-local FlyConnection = nil
 local NoclipEnabled = false
 local NoclipConnection = nil
 local AutoParasitedEnabled = false
@@ -142,6 +148,66 @@ local AutoClickEndlessConnection = nil
 local AntiAFKEnabled = false
 local AntiAFKConnection = nil
 local EditModeEnabled = false
+local AutoGunEnabled = false
+local AutoGunConnection = nil
+local AutoShieldEnabled = false
+local AutoShieldConnection = nil
+local AutoDodgeEnabled = false
+local AutoDodgeConnection = nil
+local OriginalPosition = nil
+local ShieldOriginalPosition = nil
+local IsWaitingCooldown = false
+local GunCooldown = 5
+
+--==================================================
+-- FUNÇÃO PARA VERIFICAR MOBS PRÓXIMOS
+--==================================================
+
+local function HasNearbyMobs()
+    local Character = Player.Character
+    if not Character or not Character:FindFirstChild("HumanoidRootPart") then
+        return false
+    end
+    
+    local PlayerPosition = Character.HumanoidRootPart.Position
+    local MobsFolder = workspace:FindFirstChild("Mobs")
+    
+    if not MobsFolder then
+        return false
+    end
+    
+    local Mobs = MobsFolder:GetChildren()
+    
+    for _, Mob in pairs(Mobs) do
+        if Mob:IsA("Model") and Mob:FindFirstChild("HumanoidRootPart") then
+            local MobPosition = Mob.HumanoidRootPart.Position
+            local Distance = (PlayerPosition - MobPosition).Magnitude
+            if Distance < 50 then
+                return true
+            end
+        elseif Mob:IsA("BasePart") then
+            local Distance = (PlayerPosition - Mob.Position).Magnitude
+            if Distance < 50 then
+                return true
+            end
+        end
+    end
+    
+    return false
+end
+
+--==================================================
+-- FUNÇÃO PARA ENCONTRAR INSTÂNCIAS NIL (GodBossTelegraph)
+--==================================================
+
+local function getNil(name, class)
+    for _, v in next, getnilinstances() do
+        if v.ClassName == class and v.Name == name then
+            return v
+        end
+    end
+    return nil
+end
 
 --==================================================
 -- GUI
@@ -155,7 +221,7 @@ Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 Gui.Parent = game:GetService("CoreGui")
 
 --==================================================
--- BOTÃO FLUTUANTE (PRETO COM EMOJI DE CAIXA DE SOM)
+-- BOTÃO FLUTUANTE
 --==================================================
 
 local FloatButton = Instance.new("TextButton")
@@ -308,7 +374,7 @@ end
 local CreditsTab = CreateTab("Créditos", 1)
 local VerseTab = CreateTab("Verse", 2)
 local MapsTab = CreateTab("Maps", 3)
-local GodModeTab = CreateTab("🔒 God Mode", 4)
+local GodModeTab = CreateTab("God Mode", 4)
 local ConfigTab = CreateTab("Config", 5)
 
 --==================================================
@@ -568,126 +634,133 @@ local function CreateMapButton(Name, MapCFrame, ContentParent)
 end
 
 --==================================================
--- FUNÇÃO DE SLIDER
+-- AUTO GUN (VERIFICA MOBS ANTES DE PEGAR)
 --==================================================
 
-local function CreateSlider(Name, Min, Max, Default, Callback, ContentParent)
-    local Row = Instance.new("Frame")
-    Row.Name = Name
-    Row.Size = UDim2.new(1, 0, 0, 70)
-    Row.BackgroundColor3 = Colors.Surface
-    Row.BorderSizePixel = 0
-    Row.Parent = ContentParent
+local function FindCannon()
+    return workspace:FindFirstChild("Cannon")
+end
 
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 10)
-    Corner.Parent = Row
-
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -30, 0, 25)
-    Label.Position = UDim2.fromOffset(15, 8)
-    Label.BackgroundTransparency = 1
-    Label.Text = Name
-    Label.TextColor3 = Colors.Text
-    Label.TextSize = 14
-    Label.Font = Enum.Font.GothamMedium
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.Parent = Row
-
-    local ValueLabel = Instance.new("TextLabel")
-    ValueLabel.Size = UDim2.new(0, 60, 0, 25)
-    ValueLabel.Position = UDim2.new(1, -75, 0, 8)
-    ValueLabel.BackgroundTransparency = 1
-    ValueLabel.Text = tostring(Default)
-    ValueLabel.TextColor3 = Colors.Accent
-    ValueLabel.TextSize = 14
-    ValueLabel.Font = Enum.Font.GothamBold
-    ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
-    ValueLabel.Parent = Row
-
-    local SliderFrame = Instance.new("Frame")
-    SliderFrame.Size = UDim2.new(1, -30, 0, 6)
-    SliderFrame.Position = UDim2.fromOffset(15, 45)
-    SliderFrame.BackgroundColor3 = Colors.SurfaceLight
-    SliderFrame.BorderSizePixel = 0
-    SliderFrame.Parent = Row
-
-    local SliderCorner = Instance.new("UICorner")
-    SliderCorner.CornerRadius = UDim.new(1, 0)
-    SliderCorner.Parent = SliderFrame
-
-    local Fill = Instance.new("Frame")
-    Fill.Size = UDim2.new((Default - Min) / (Max - Min), 0, 1, 0)
-    Fill.BackgroundColor3 = Colors.Accent
-    Fill.BorderSizePixel = 0
-    Fill.Parent = SliderFrame
-
-    local FillCorner = Instance.new("UICorner")
-    FillCorner.CornerRadius = UDim.new(1, 0)
-    FillCorner.Parent = Fill
-
-    local SliderButton = Instance.new("TextButton")
-    SliderButton.Size = UDim2.fromOffset(20, 20)
-    SliderButton.Position = UDim2.new((Default - Min) / (Max - Min), -10, 0.5, -10)
-    SliderButton.BackgroundColor3 = Colors.CircleOn
-    SliderButton.BorderSizePixel = 0
-    SliderButton.Text = ""
-    SliderButton.AutoButtonColor = false
-    SliderButton.Parent = SliderFrame
-
-    local SliderButtonCorner = Instance.new("UICorner")
-    SliderButtonCorner.CornerRadius = UDim.new(1, 0)
-    SliderButtonCorner.Parent = SliderButton
-
-    local Dragging = false
-
-    local function UpdateSlider(Input)
-        local SliderPos = Input.Position.X - SliderFrame.AbsolutePosition.X
-        local Size = SliderFrame.AbsoluteSize.X
-        local Percent = math.clamp(SliderPos / Size, 0, 1)
-        local Value = math.floor(Min + (Max - Min) * Percent)
+local function AutoGun()
+    local Cannon = FindCannon()
+    local Character = Player.Character
+    local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+    
+    if not HumanoidRootPart then
+        return
+    end
+    
+    if IsWaitingCooldown then
+        return
+    end
+    
+    if HasNearbyMobs() then
+        return
+    end
+    
+    if Cannon then
+        if not OriginalPosition then
+            OriginalPosition = HumanoidRootPart.CFrame
+        end
         
-        Fill.Size = UDim2.new(Percent, 0, 1, 0)
-        SliderButton.Position = UDim2.new(Percent, -10, 0.5, -10)
-        ValueLabel.Text = tostring(Value)
+        local CannonCFrame = Cannon:GetPivot()
+        HumanoidRootPart.CFrame = CannonCFrame + Vector3.new(0, 3, 0)
         
-        if Callback then
-            Callback(Value)
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, nil, 0)
+        wait(0.05)
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, nil, 0)
+        
+        HumanoidRootPart.CFrame = OriginalPosition
+        OriginalPosition = nil
+        
+        for i = 1, 3 do
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, nil, 0)
+            wait(0.03)
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, nil, 0)
+            wait(0.03)
+        end
+        
+        IsWaitingCooldown = true
+        wait(GunCooldown)
+        IsWaitingCooldown = false
+    end
+end
+
+--==================================================
+-- AUTO SHIELD (TP PARA SHIELD, COLETA, VOLTA)
+--==================================================
+
+local function FindShield()
+    return workspace:FindFirstChild("Shield")
+end
+
+local function AutoShield()
+    local Shield = FindShield()
+    local Character = Player.Character
+    local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+    
+    if not HumanoidRootPart then
+        return
+    end
+    
+    if Shield then
+        if not ShieldOriginalPosition then
+            ShieldOriginalPosition = HumanoidRootPart.CFrame
+        end
+        
+        local ShieldCFrame = Shield:GetPivot()
+        HumanoidRootPart.CFrame = ShieldCFrame + Vector3.new(0, 3, 0)
+        
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, nil, 0)
+        wait(0.05)
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, nil, 0)
+        
+        HumanoidRootPart.CFrame = ShieldOriginalPosition
+        ShieldOriginalPosition = nil
+    end
+end
+
+--==================================================
+-- AUTO DESVIAR ATTACK BOSS (Usando getnilinstances)
+--==================================================
+
+local function AutoDodge()
+    local Character = Player.Character
+    local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+    
+    if not HumanoidRootPart then
+        return
+    end
+    
+    -- Procurar GodBossTelegraph usando getnilinstances
+    local GodBossTelegraph = getNil("GodBossTelegraph", "Part")
+    
+    if GodBossTelegraph then
+        -- Verificar se o Boss está atacando
+        local Boss = workspace:FindFirstChild("God Titan Speakerman 3.0")
+        
+        if Boss then
+            local BossHumanoid = Boss:FindFirstChild("Humanoid")
+            
+            if BossHumanoid then
+                -- Verificar Meteors
+                local Meteors = BossHumanoid:FindFirstChild("Meteors")
+                if Meteors and Meteors.Value == true then
+                    HumanoidRootPart.CFrame = MeteorDodgePosition
+                    return
+                end
+                
+                -- Verificar Shockwave
+                local Shockwave = BossHumanoid:FindFirstChild("Shockwave")
+                if Shockwave and Shockwave.Value == true then
+                    HumanoidRootPart.CFrame = ShockwaveDodgePositions[1]
+                    wait(1)
+                    HumanoidRootPart.CFrame = ShockwaveDodgePositions[2]
+                    wait(1)
+                end
+            end
         end
     end
-
-    SliderButton.InputBegan:Connect(function(Input)
-        if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-            Dragging = true
-        end
-    end)
-
-    SliderButton.InputEnded:Connect(function(Input)
-        if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-            Dragging = false
-        end
-    end)
-
-    SliderFrame.InputBegan:Connect(function(Input)
-        if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-            Dragging = true
-            UpdateSlider(Input)
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(Input)
-        if Dragging and Input.UserInputType == Enum.UserInputType.MouseMovement then
-            UpdateSlider(Input)
-        end
-    end)
-
-    UserInputService.InputEnded:Connect(function(Input)
-        if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-            Dragging = false
-        end
-    end)
-
-    return Row
 end
 
 --==================================================
@@ -782,19 +855,101 @@ CreateMapButton("God Speak", MapPositions.GodSpeak, MapsContent)
 CreateMapButton("Cidade Destruída", MapPositions.CidadeDestruida, MapsContent)
 
 --==================================================
--- ABA GOD MODE (BLOQUEADA)
+-- ABA GOD MODE (GOD MODE + AUTO GUN + AUTO SHIELD + AUTO DODGE)
 --==================================================
 
-local LockedLabel = Instance.new("TextLabel")
-LockedLabel.Size = UDim2.new(1, 0, 0, 50)
-LockedLabel.Position = UDim2.new(0, 0, 0.5, -25)
-LockedLabel.BackgroundTransparency = 1
-LockedLabel.Text = "🔒 BLOQUEADO\nDisponível em breve!"
-LockedLabel.TextColor3 = Colors.Locked
-LockedLabel.TextSize = 16
-LockedLabel.Font = Enum.Font.GothamBold
-LockedLabel.TextXAlignment = Enum.TextXAlignment.Center
-LockedLabel.Parent = GodModeContent
+CreateToggle("God Mode", function(enabled)
+    GodModeEnabled = enabled
+    if enabled then
+        GodModeConnection = RunService.Heartbeat:Connect(function()
+            if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+                Player.Character.Humanoid.Health = Player.Character.Humanoid.MaxHealth
+                Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+                Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+            end
+        end)
+    else
+        if GodModeConnection then
+            GodModeConnection:Disconnect()
+            GodModeConnection = nil
+        end
+        if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+            Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
+            Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
+        end
+    end
+end, GodModeContent)
+
+CreateToggle("Auto Desviar Attack Boss", function(enabled)
+    AutoDodgeEnabled = enabled
+    if enabled then
+        AutoDodgeConnection = RunService.Heartbeat:Connect(function()
+            AutoDodge()
+        end)
+    else
+        if AutoDodgeConnection then
+            AutoDodgeConnection:Disconnect()
+            AutoDodgeConnection = nil
+        end
+    end
+end, GodModeContent)
+
+CreateToggle("Auto Gun", function(enabled)
+    AutoGunEnabled = enabled
+    if enabled then
+        AutoGunConnection = RunService.Heartbeat:Connect(function()
+            AutoGun()
+        end)
+    else
+        if AutoGunConnection then
+            AutoGunConnection:Disconnect()
+            AutoGunConnection = nil
+        end
+        IsWaitingCooldown = false
+        OriginalPosition = nil
+    end
+end, GodModeContent)
+
+CreateToggle("Auto Coletar Shield", function(enabled)
+    AutoShieldEnabled = enabled
+    if enabled then
+        AutoShieldConnection = RunService.Heartbeat:Connect(function()
+            AutoShield()
+        end)
+    else
+        if AutoShieldConnection then
+            AutoShieldConnection:Disconnect()
+            AutoShieldConnection = nil
+        end
+        ShieldOriginalPosition = nil
+    end
+end, GodModeContent)
+
+CreateToggle("Noclip", function(enabled)
+    NoclipEnabled = enabled
+    if enabled then
+        NoclipConnection = RunService.Heartbeat:Connect(function()
+            if Player.Character then                for _, part in pairs(Player.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        if NoclipConnection then
+            NoclipConnection:Disconnect()
+            NoclipConnection = nil
+        end
+        if Player.Character then
+            for _, part in pairs(Player.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+    end
+end, GodModeContent)
 
 --==================================================
 -- ABA CONFIG
@@ -832,6 +987,9 @@ end, ConfigContent)
 
 -- Botões de tema
 CreateMapButton("Tema: Preto/Vermelho", nil, ConfigContent)
+CreateMapButton("Tema: Preto/Branco", nil, ConfigContent)
+CreateMapButton("Tema: Preto/Azul", nil, ConfigContent)
+
 local function UpdateThemeButtons()
     for _, child in pairs(ConfigContent:GetChildren()) do
         if child:IsA("TextButton") and child.Name:find("Tema") then
@@ -843,7 +1001,6 @@ local function UpdateThemeButtons()
                 elseif child.Name == "Tema: Preto/Azul" then
                     Colors = Themes.PretoAzul
                 end
-                -- Atualizar cores
                 Main.BackgroundColor3 = Colors.Background
                 FloatButton.BackgroundColor3 = Colors.Background
                 FloatStroke.Color = Colors.Accent
@@ -854,8 +1011,6 @@ local function UpdateThemeButtons()
     end
 end
 
-CreateMapButton("Tema: Preto/Branco", nil, ConfigContent)
-CreateMapButton("Tema: Preto/Azul", nil, ConfigContent)
 UpdateThemeButtons()
 
 --==================================================
@@ -870,7 +1025,7 @@ local function SwitchTab(Tab, Content)
     MapsTab.BackgroundColor3 = Colors.Surface
     MapsTab.TextColor3 = Colors.TextDim
     GodModeTab.BackgroundColor3 = Colors.Surface
-    GodModeTab.TextColor3 = Colors.Locked
+    GodModeTab.TextColor3 = Colors.TextDim
     ConfigTab.BackgroundColor3 = Colors.Surface
     ConfigTab.TextColor3 = Colors.TextDim
     
